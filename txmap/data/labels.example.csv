@@ -1,0 +1,21 @@
+Bank,TransactionID,MerchantName
+td,MADINA SPICE      _F,Madina Spice
+td,TD ATM W/D    005413,TD ATM Withdrawal
+td,MOBIL@  - 4361    _F,Mobil
+td,SHOPPERS DRUG M   _F,Shoppers Drug Mart
+td,DOLLARAMA #1348   _F,Dollarama
+td,WALMART STORE #   _F,Walmart
+td,METRO  728        _F,Metro
+td,LAURA SECORD #0   _F,Laura Secord
+td,BIKE SHARE TORO   _V,Bike Share Toronto
+td,CITY OF TORONTO   _V,City of Toronto
+td,GOOGLE *YouTube   _V,YouTube
+td,GOOGLE *SERVICE   _V,Google
+td,GOOGLE *Google    _V,Google
+td,WP*WORDPRESS 94   _V,WordPress
+td,EVENTBRITE/2026   _V,Eventbrite
+td,SEND E-TFR ***abc,Interac e-Transfer
+td,E-TRANSFER ***xyz,Interac e-Transfer
+td,MONTHLY ACCOUNT FEE,TD Monthly Account Fee
+td,MOBILE DEPOSIT,TD Mobile Deposit
+td,TD VISA PREAUTH PYMT,TD Visa Payment
