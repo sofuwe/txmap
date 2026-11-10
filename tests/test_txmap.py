@@ -1,12 +1,22 @@
 import csv
-import io
 import os
 import tempfile
 import unittest
 
-from txmap.banks import clean
+from txmap.banks import clean, detect
 from txmap.cli import EXAMPLE_LABELS, main
 from txmap.model import Model
+
+TD_RAW = '"2026-07-10","MADINA SPICE      _F","5.88",,"16670.38"\n' \
+         '"2026-07-11","MOBILE DEPOSIT",,"100.00","16770.38"\n'
+
+MERIDIAN_RAW = (
+    " ID, Date, Account Name, Description1, Description2, Description3, Amount, Balance\n"
+    '1,2026-11-05 12:00:00 AM,123-Chequing - 0,"POS Purchase Mobil 4361 Toronto Onca",'
+    '"Other Reference # 117061","",-4.92,2253.32\n'
+    '2,2026-11-06 12:00:00 AM,123-Chequing - 0,"e-Transfer Out","Service Charge 1.00",'
+    '"Other Reference # 1",-901,1352.32\n'
+)
 
 
 class CleanTD(unittest.TestCase):
@@ -24,36 +34,87 @@ class CleanTD(unittest.TestCase):
             self.assertEqual(clean("td", raw), want, raw)
 
 
+class CleanMeridian(unittest.TestCase):
+    def test_normalization(self):
+        cases = {
+            "POS Purchase Mobil 4361 Toronto Onca": "MOBIL",           # city stripped
+            "POS Purchase Bulk Barn 476 Mississ": "BULK BARN",         # cut-off city stripped
+            "POS Purchase Truck 1 North York Onca": "TRUCK",           # two-word city
+            "POS Purchase Sh Vending Richmond H": "SH VENDING",
+            "Bill Payment CITY OF TORONTO": "CITY OF TORONTO",         # "OF <city>" kept
+            "POS Purchase Islamic Society Of Mar": "ISLAMIC SOCIETY OF MAR",  # too short to strip
+            "Pre-Authorized I3 INSTITUTE": "I3 INSTITUTE",
+            "Bill Payment WYSE METER SOLUTIONS": "WYSE METER SOLUTIONS",
+            "e-Transfer Out": "E TRANSFER OUT",
+        }
+        for raw, want in cases.items():
+            self.assertEqual(clean("meridiancu", raw), want, raw)
+
+
 class ModelTest(unittest.TestCase):
     def test_exact_variants_and_fallback(self):
         m = Model.train([("td", "DOLLARAMA #1348   _F", "Dollarama")])
 
         merchant_actual, *_ = m.predict("td", "DOLLARAMA #9999   _F")
         self.assertEqual(merchant_actual, "Dollarama")
-        
+
         merchant_actual, conf_actual, src_actual = m.predict("td", "ZZZ UNKNOWN   _F")
         self.assertEqual((merchant_actual, conf_actual, src_actual), ("Zzz Unknown", 0.0, "fallback"))
 
 
-class CliTest(unittest.TestCase):
-    def run_map(self, content, *args):
-        with tempfile.TemporaryDirectory() as d:
-            src, out = os.path.join(d, "in.csv"), os.path.join(d, "out.csv")
-            with open(src, "w") as fo:
-                fo.write(content)
-    
-            main(["map", src, "-o", out, "--labels", EXAMPLE_LABELS, *args])
+def run_cli(content, *args, name="in.csv"):
+    """Write content to a temp file, run `txmap <args> <file> -o <out>`, return output rows."""
+    with tempfile.TemporaryDirectory() as d:
+        src, out = os.path.join(d, name), os.path.join(d, "out.csv")
+        with open(src, "w") as fo:
+            fo.write(content)
+        main([*args, src, "-o", out])
+        with open(out, newline="") as fi:
+            return list(csv.reader(fi))
 
-            with open(out) as fi:
-                return list(csv.reader(fi))
 
-    def test_headerless_td(self):
-        rows = self.run_map('"2026-07-10","MADINA SPICE      _F","5.88",,"16670.38"\n', "--bank", "td")
-        self.assertEqual(rows, [["TransactionID", "MerchantName"], ["MADINA SPICE      _F", "Madina Spice"]])
+class NormalizeTest(unittest.TestCase):
+    def test_detect(self):
+        self.assertEqual(detect(list(csv.reader(TD_RAW.splitlines()))), "td")
+        self.assertEqual(detect(list(csv.reader(MERIDIAN_RAW.splitlines()))), "meridiancu")
+        self.assertIsNone(detect([["something", "else"]]))
 
-    def test_headered_with_bank_column(self):
-        rows = self.run_map("Date,TransactionID,Amount,Bank\n2026-01-01,METRO  728        _F,9.99,td\n")
-        self.assertEqual(rows[1], ["METRO  728        _F", "Metro"])
+    def test_td(self):
+        rows = run_cli(TD_RAW, "normalize")
+        self.assertEqual(rows, [
+            ["Bank", "TransactionID", "Date", "Amount"],
+            ["td", "MADINA SPICE      _F", "2026-07-10", "-5.88"],
+            ["td", "MOBILE DEPOSIT", "2026-07-11", "100.00"],
+        ])
+
+    def test_meridiancu(self):
+        rows = run_cli(MERIDIAN_RAW, "normalize")
+        self.assertEqual(rows, [
+            ["Bank", "TransactionID", "Date", "Amount"],
+            ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "2026-11-05", "-4.92"],
+            ["meridiancu", "e-Transfer Out", "2026-11-06", "-901"],
+        ])
+
+    def test_unknown_bank_exits(self):
+        with self.assertRaises(SystemExit):
+            run_cli("a,b\n1,2\n", "normalize")
+
+
+class MapTest(unittest.TestCase):
+    def test_labels_draft(self):
+        normalized = ("Bank,TransactionID,Date,Amount\n"
+                      "td,METRO  728        _F,2026-01-01,-9.99\n"
+                      "meridiancu,POS Purchase Mobil 4361 Toronto Onca,2026-11-05,-4.92\n")
+        rows = run_cli(normalized, "map", "--labels", EXAMPLE_LABELS)
+        self.assertEqual(rows, [
+            ["Bank", "TransactionID", "MerchantName"],
+            ["td", "METRO  728        _F", "Metro"],
+            ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "Mobil"],
+        ])
+
+    def test_rejects_raw_export(self):
+        with self.assertRaises(SystemExit):
+            run_cli(TD_RAW, "map", "--labels", EXAMPLE_LABELS)
 
 
 if __name__ == "__main__":

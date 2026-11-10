@@ -1,0 +1,16 @@
+Bank,TransactionID,Date,Amount
+meridiancu,POS Purchase Mobil 4361 Toronto Onca,2026-10-01,-40.25
+meridiancu,POS Purchase Bulk Barn 123 Toronto,2026-10-02,-12.40
+meridiancu,POS Purchase Dollarama 1348 York Onca,2026-10-03,-6.78
+meridiancu,e-Transfer Out,2026-10-05,-100
+meridiancu,eTrsfr Fee,2026-10-05,-1
+meridiancu,Bill Payment CITY OF TORONTO,2026-10-15,-250
+meridiancu,Account Fee,2026-10-31,-14
+td,MOBILE DEPOSIT,2026-09-01,500.00
+td,MOBIL@  - 4361    _F,2026-09-02,-45.10
+td,DOLLARAMA #1348   _F,2026-09-03,-8.47
+td,SHOPPERS DRUG M   _F,2026-09-05,-23.15
+td,GOOGLE *YouTube   _V,2026-09-08,-13.99
+td,SEND E-TFR ***abc,2026-09-10,-100.00
+td,TD ATM W/D    005413,2026-09-12,-60.00
+td,MONTHLY ACCOUNT FEE,2026-09-30,-4.95

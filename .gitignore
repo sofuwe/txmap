@@ -1,6 +1,18 @@
-# Data
-txmap/data/*
-!txmap/data/labels.example.csv
+# Project
+.claude/prompts.txt
+
+# Project - Data
+txmap/data/out/*
+!txmap/data/out/labels.example.csv
+!txmap/data/raw/
+txmap/data/raw/*
+!txmap/data/raw/*.example.csv
+!txmap/data/normalized/
+txmap/data/normalized/*
+!txmap/data/normalized/all.example.csv
+!txmap/data/models/
+txmap/data/models/*
+!txmap/data/models/model.example.json
 
 # Python
 __pycache__/

@@ -1,0 +1,129 @@
+{
+ "entries": [
+  {
+   "bank": "meridiancu",
+   "key": "ACCOUNT FEE",
+   "merchant": "Meridian Account Fee"
+  },
+  {
+   "bank": "meridiancu",
+   "key": "BULK BARN",
+   "merchant": "Bulk Barn"
+  },
+  {
+   "bank": "meridiancu",
+   "key": "E TRANSFER OUT",
+   "merchant": "Interac e-Transfer"
+  },
+  {
+   "bank": "meridiancu",
+   "key": "ETRSFR FEE",
+   "merchant": "Interac e-Transfer Fee"
+  },
+  {
+   "bank": "meridiancu",
+   "key": "MOBIL",
+   "merchant": "Mobil"
+  },
+  {
+   "bank": "td",
+   "key": "BIKE SHARE TORO",
+   "merchant": "Bike Share Toronto"
+  },
+  {
+   "bank": "td",
+   "key": "CITY OF TORONTO",
+   "merchant": "City of Toronto"
+  },
+  {
+   "bank": "td",
+   "key": "DOLLARAMA",
+   "merchant": "Dollarama"
+  },
+  {
+   "bank": "td",
+   "key": "E TRANSFER",
+   "merchant": "Interac e-Transfer"
+  },
+  {
+   "bank": "td",
+   "key": "EVENTBRITE",
+   "merchant": "Eventbrite"
+  },
+  {
+   "bank": "td",
+   "key": "GOOGLE GOOGLE",
+   "merchant": "Google"
+  },
+  {
+   "bank": "td",
+   "key": "GOOGLE SERVICE",
+   "merchant": "Google"
+  },
+  {
+   "bank": "td",
+   "key": "GOOGLE YOUTUBE",
+   "merchant": "YouTube"
+  },
+  {
+   "bank": "td",
+   "key": "LAURA SECORD",
+   "merchant": "Laura Secord"
+  },
+  {
+   "bank": "td",
+   "key": "MADINA SPICE",
+   "merchant": "Madina Spice"
+  },
+  {
+   "bank": "td",
+   "key": "METRO",
+   "merchant": "Metro"
+  },
+  {
+   "bank": "td",
+   "key": "MOBIL",
+   "merchant": "Mobil"
+  },
+  {
+   "bank": "td",
+   "key": "MOBILE DEPOSIT",
+   "merchant": "TD Mobile Deposit"
+  },
+  {
+   "bank": "td",
+   "key": "MONTHLY ACCOUNT FEE",
+   "merchant": "TD Monthly Account Fee"
+  },
+  {
+   "bank": "td",
+   "key": "SEND E TFR",
+   "merchant": "Interac e-Transfer"
+  },
+  {
+   "bank": "td",
+   "key": "SHOPPERS DRUG M",
+   "merchant": "Shoppers Drug Mart"
+  },
+  {
+   "bank": "td",
+   "key": "TD ATM W D",
+   "merchant": "TD ATM Withdrawal"
+  },
+  {
+   "bank": "td",
+   "key": "TD VISA PREAUTH PYMT",
+   "merchant": "TD Visa Payment"
+  },
+  {
+   "bank": "td",
+   "key": "WALMART STORE",
+   "merchant": "Walmart"
+  },
+  {
+   "bank": "td",
+   "key": "WP WORDPRESS",
+   "merchant": "WordPress"
+  }
+ ]
+}
