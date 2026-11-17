@@ -1,8 +1,9 @@
 """Character n-gram TF-IDF nearest-neighbour classifier (pure stdlib).
 
 Trained on (bank, raw descriptor, merchant) examples. Predicts by exact normalized
-match, then cosine similarity over char trigrams, then falls back to the cleaned
-descriptor in title case (flagged low confidence so it can be reviewed/labelled).
+match, then cosine similarity over char trigrams, then (optionally) an LLM given the
+nearest labels as examples, then falls back to the cleaned descriptor in title case.
+Anything past similarity is flagged low confidence so it can be reviewed/labelled.
 """
 import json
 import math
@@ -12,6 +13,8 @@ from .banks import clean
 
 THRESHOLD = 0.7
 SAME_BANK_BONUS = 0.05
+NUM_EXAMPLES = 10      # nearest labels shown to the LLM fallback
+LLM_CONFIDENCE = 0.5   # below the default review threshold, so LLM guesses get reviewed
 
 
 def _grams(key: str) -> Counter:
@@ -50,24 +53,36 @@ class Model:
         norm = math.sqrt(sum(x * x for x in v.values())) or 1.0
         return {g: x / norm for g, x in v.items()}
 
-    def predict(self, bank: str, raw: str):
-        """Returns (merchant, confidence, source)."""
+    def predict(self, bank: str, raw: str, namer=None):
+        """Returns (merchant, confidence, source). `namer` (an llm.LLMNamer) handles
+        descriptors with no close match; without it they fall back to title case."""
         bank, key = bank.lower(), clean(bank, raw)
         if (bank, key) in self.exact:
             return self.exact[(bank, key)], 1.0, "exact"
         if key in self.exact_any:
             return self.exact_any[key], 0.95, "exact-other-bank"
+        ranked = self._ranked(bank, key)
+        if ranked and ranked[0][0] >= THRESHOLD:
+            best_score, best = ranked[0]
+            return best["merchant"], min(best_score, 0.99), "similar"
+        if namer:
+            examples = [(e["bank"], e["key"], e["merchant"]) for _, e in ranked[:NUM_EXAMPLES]]
+            merchant = namer.name(bank, raw, key, examples)
+            if merchant:
+                return merchant, LLM_CONFIDENCE, "llm"
+        return key.title() or raw.strip(), 0.0, "fallback"
+
+    def _ranked(self, bank: str, key: str):
+        """All entries as (score, entry), most similar first."""
         q = self._vec(_grams(key))
-        best, best_score = None, 0.0
+        scored = []
         for e, v in zip(self.entries, self.vecs):
             score = sum(w * v.get(g, 0.0) for g, w in q.items())
             if e["bank"] == bank:
                 score += SAME_BANK_BONUS
-            if score > best_score:
-                best, best_score = e, score
-        if best and best_score >= THRESHOLD:
-            return best["merchant"], min(best_score, 0.99), "similar"
-        return key.title() or raw.strip(), 0.0, "fallback"
+            scored.append((score, e))
+        scored.sort(key=lambda x: -x[0])
+        return scored
 
     def save(self, path):
         with open(path, "w") as f:

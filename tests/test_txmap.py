@@ -119,3 +119,61 @@ class MapTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class _FakeBlock:
+    type = "text"
+
+    def __init__(self, text):
+        self.text = text
+
+
+class _FakeClient:
+    """Stands in for anthropic.Anthropic(); records prompts and returns a fixed merchant."""
+
+    def __init__(self, merchant):
+        self.merchant, self.prompts = merchant, []
+        self.beta = self
+        self.messages = self
+
+    def create(self, **kw):
+        self.prompts.append(kw["messages"][0]["content"])
+        resp = type("R", (), {})()
+        resp.stop_reason = "end_turn"
+        resp.content = [_FakeBlock('{"merchant": "%s"}' % self.merchant)]
+        return resp
+
+
+class LLMFallback(unittest.TestCase):
+    def setUp(self):
+        from txmap.llm import LLMNamer
+        self.tmp = tempfile.mkdtemp()
+        self.client = _FakeClient("Fresh Palace Supermarket")
+        self.namer = LLMNamer(cache_path=os.path.join(self.tmp, "cache.json"), client=self.client)
+        self.model = Model.train([("meridiancu", "POS Purchase Bulk Barn 476 Mississ", "Bulk Barn")])
+
+    def test_unmatched_descriptor_goes_to_llm_with_examples(self):
+        got = self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=self.namer)
+        self.assertEqual(got, ("Fresh Palace Supermarket", 0.5, "llm"))
+        self.assertIn("BULK BARN -> Bulk Barn", self.client.prompts[0])
+
+    def test_matched_descriptor_skips_llm(self):
+        got = self.model.predict("meridiancu", "POS Purchase Bulk Barn 476 Mississ", namer=self.namer)
+        self.assertEqual(got[2], "exact")
+        self.assertEqual(self.client.prompts, [])
+
+    def test_answers_are_cached(self):
+        from txmap.llm import LLMNamer
+        self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=self.namer)
+        self.namer.save()
+        again = LLMNamer(cache_path=self.namer.cache_path, client=self.client)
+        self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=again)
+        self.assertEqual((len(self.client.prompts), again.calls), (1, 0))
+
+    def test_missing_api_key_exits_with_message(self):
+        def no_key(**kw):
+            raise TypeError('"Could not resolve authentication method. Expected one of api_key, ..."')
+        self.client.create = no_key
+        with self.assertRaises(SystemExit) as cm:
+            self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=self.namer)
+        self.assertIn("ANTHROPIC_API_KEY", str(cm.exception.code))

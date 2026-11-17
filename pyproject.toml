@@ -5,6 +5,10 @@ description = "Map bank transactions to labels"
 requires-python = ">=3.13"
 dependencies = []
 
+[project.optional-dependencies]
+# `uv sync --extra llm` enables `--llm` (Claude names descriptors with no close match)
+llm = ["anthropic"]
+
 [project.scripts]
 txmap = "txmap.cli:main"
 
