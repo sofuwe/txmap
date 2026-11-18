@@ -12,6 +12,24 @@ asks Claude to name descriptions that have no close match.
 
 Supported banks: **TD Canada Trust** (`td`) and **Meridian Credit Union** (`meridiancu`).
 
+## Demo
+
+![txmap demo: normalize, map and eval on the sample data](docs/demo.gif)
+
+The demo runs the whole pipeline on the sample files that ship with the repo:
+
+1. **`normalize`** reads a TD export and a Meridian export, which have
+   different formats, and combines them into one standard CSV.
+2. **`map`** gives each transaction a merchant name. For example,
+   `MOBIL@  - 4361    _F` from TD and `POS Purchase Mobil 4361 Toronto Onca`
+   from Meridian both become `Mobil`.
+3. **`eval`** measures accuracy on descriptions the model hasn't seen, broken
+   down by cascade step. `-v` lists each miss.
+
+The sample labels are tiny, so the accuracy shown (48%) is lower than what
+you'll get with your own labels. To re-record the demo, run
+`uv run --with pillow python scripts/make_demo_gif.py . docs/demo.gif` (macOS).
+
 ## How it works
 
 ```
