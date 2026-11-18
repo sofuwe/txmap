@@ -122,6 +122,5 @@ class LLMNamer:
 
     def save(self):
         os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
-        with self._lock:
-            with open(self.cache_path, "w") as f:
-                json.dump(self._cache, f, indent=1, sort_keys=True)
+        with self._lock, open(self.cache_path, "w") as f:
+            json.dump(self._cache, f, indent=1, sort_keys=True)

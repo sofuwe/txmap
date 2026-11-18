@@ -76,8 +76,8 @@ def _clean_td(raw: str) -> str:
 
 
 # Transaction-type prefixes and the trailing province/country code ("Onca" = Ontario, Canada).
-_MERIDIAN_PREFIX = re.compile(r"^(?:POS Purchase|Pre-Authorized|Bill Payment)\s+", re.I)
-_MERIDIAN_SUFFIX = re.compile(r"\s+Onca\s*$", re.I)
+_MERIDIAN_PREFIX = re.compile(r"^(?:POS Purchase|Pre-Authorized|Bill Payment)\s+", re.IGNORECASE)
+_MERIDIAN_SUFFIX = re.compile(r"\s+Onca\s*$", re.IGNORECASE)
 
 
 # Meridian appends the city after the merchant, often cut short ("Mississ", "Scarboroug").

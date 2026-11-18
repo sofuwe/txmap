@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import tempfile
 import unittest
@@ -140,7 +141,7 @@ class _FakeClient:
         self.prompts.append(kw["messages"][0]["content"])
         resp = type("R", (), {})()
         resp.stop_reason = "end_turn"
-        resp.content = [_FakeBlock('{"merchant": "%s"}' % self.merchant)]
+        resp.content = [_FakeBlock(json.dumps({"merchant": self.merchant}))]
         return resp
 
 
