@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import tempfile
 import unittest
@@ -7,8 +8,7 @@ from txmap.banks import clean, detect
 from txmap.cli import EXAMPLE_LABELS, main
 from txmap.model import Model
 
-TD_RAW = '"2026-07-10","MADINA SPICE      _F","5.88",,"16670.38"\n' \
-         '"2026-07-11","MOBILE DEPOSIT",,"100.00","16770.38"\n'
+TD_RAW = '"2026-07-10","MADINA SPICE      _F","5.88",,"16670.38"\n"2026-07-11","MOBILE DEPOSIT",,"100.00","16770.38"\n'
 
 MERIDIAN_RAW = (
     " ID, Date, Account Name, Description1, Description2, Description3, Amount, Balance\n"
@@ -37,11 +37,11 @@ class CleanTD(unittest.TestCase):
 class CleanMeridian(unittest.TestCase):
     def test_normalization(self):
         cases = {
-            "POS Purchase Mobil 4361 Toronto Onca": "MOBIL",           # city stripped
-            "POS Purchase Bulk Barn 476 Mississ": "BULK BARN",         # cut-off city stripped
-            "POS Purchase Truck 1 North York Onca": "TRUCK",           # two-word city
+            "POS Purchase Mobil 4361 Toronto Onca": "MOBIL",  # city stripped
+            "POS Purchase Bulk Barn 476 Mississ": "BULK BARN",  # cut-off city stripped
+            "POS Purchase Truck 1 North York Onca": "TRUCK",  # two-word city
             "POS Purchase Sh Vending Richmond H": "SH VENDING",
-            "Bill Payment CITY OF TORONTO": "CITY OF TORONTO",         # "OF <city>" kept
+            "Bill Payment CITY OF TORONTO": "CITY OF TORONTO",  # "OF <city>" kept
             "POS Purchase Islamic Society Of Mar": "ISLAMIC SOCIETY OF MAR",  # too short to strip
             "Pre-Authorized I3 INSTITUTE": "I3 INSTITUTE",
             "Bill Payment WYSE METER SOLUTIONS": "WYSE METER SOLUTIONS",
@@ -81,19 +81,25 @@ class NormalizeTest(unittest.TestCase):
 
     def test_td(self):
         rows = run_cli(TD_RAW, "normalize")
-        self.assertEqual(rows, [
-            ["Bank", "TransactionID", "Date", "Amount"],
-            ["td", "MADINA SPICE      _F", "2026-07-10", "-5.88"],
-            ["td", "MOBILE DEPOSIT", "2026-07-11", "100.00"],
-        ])
+        self.assertEqual(
+            rows,
+            [
+                ["Bank", "TransactionID", "Date", "Amount"],
+                ["td", "MADINA SPICE      _F", "2026-07-10", "-5.88"],
+                ["td", "MOBILE DEPOSIT", "2026-07-11", "100.00"],
+            ],
+        )
 
     def test_meridiancu(self):
         rows = run_cli(MERIDIAN_RAW, "normalize")
-        self.assertEqual(rows, [
-            ["Bank", "TransactionID", "Date", "Amount"],
-            ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "2026-11-05", "-4.92"],
-            ["meridiancu", "e-Transfer Out", "2026-11-06", "-901"],
-        ])
+        self.assertEqual(
+            rows,
+            [
+                ["Bank", "TransactionID", "Date", "Amount"],
+                ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "2026-11-05", "-4.92"],
+                ["meridiancu", "e-Transfer Out", "2026-11-06", "-901"],
+            ],
+        )
 
     def test_unknown_bank_exits(self):
         with self.assertRaises(SystemExit):
@@ -102,15 +108,20 @@ class NormalizeTest(unittest.TestCase):
 
 class MapTest(unittest.TestCase):
     def test_labels_draft(self):
-        normalized = ("Bank,TransactionID,Date,Amount\n"
-                      "td,METRO  728        _F,2026-01-01,-9.99\n"
-                      "meridiancu,POS Purchase Mobil 4361 Toronto Onca,2026-11-05,-4.92\n")
+        normalized = (
+            "Bank,TransactionID,Date,Amount\n"
+            "td,METRO  728        _F,2026-01-01,-9.99\n"
+            "meridiancu,POS Purchase Mobil 4361 Toronto Onca,2026-11-05,-4.92\n"
+        )
         rows = run_cli(normalized, "map", "--labels", EXAMPLE_LABELS)
-        self.assertEqual(rows, [
-            ["Bank", "TransactionID", "MerchantName"],
-            ["td", "METRO  728        _F", "Metro"],
-            ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "Mobil"],
-        ])
+        self.assertEqual(
+            rows,
+            [
+                ["Bank", "TransactionID", "MerchantName"],
+                ["td", "METRO  728        _F", "Metro"],
+                ["meridiancu", "POS Purchase Mobil 4361 Toronto Onca", "Mobil"],
+            ],
+        )
 
     def test_rejects_raw_export(self):
         with self.assertRaises(SystemExit):
@@ -140,13 +151,14 @@ class _FakeClient:
         self.prompts.append(kw["messages"][0]["content"])
         resp = type("R", (), {})()
         resp.stop_reason = "end_turn"
-        resp.content = [_FakeBlock('{"merchant": "%s"}' % self.merchant)]
+        resp.content = [_FakeBlock(json.dumps({"merchant": self.merchant}))]
         return resp
 
 
 class LLMFallback(unittest.TestCase):
     def setUp(self):
         from txmap.llm import LLMNamer
+
         self.tmp = tempfile.mkdtemp()
         self.client = _FakeClient("Fresh Palace Supermarket")
         self.namer = LLMNamer(cache_path=os.path.join(self.tmp, "cache.json"), client=self.client)
@@ -164,6 +176,7 @@ class LLMFallback(unittest.TestCase):
 
     def test_answers_are_cached(self):
         from txmap.llm import LLMNamer
+
         self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=self.namer)
         self.namer.save()
         again = LLMNamer(cache_path=self.namer.cache_path, client=self.client)
@@ -173,6 +186,7 @@ class LLMFallback(unittest.TestCase):
     def test_missing_api_key_exits_with_message(self):
         def no_key(**kw):
             raise TypeError('"Could not resolve authentication method. Expected one of api_key, ..."')
+
         self.client.create = no_key
         with self.assertRaises(SystemExit) as cm:
             self.model.predict("meridiancu", "POS Purchase Fresh Palace Supermark", namer=self.namer)

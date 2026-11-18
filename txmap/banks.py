@@ -9,6 +9,7 @@ Each bank has:
 To add a bank: write a parser and a cleaner, register both in BANKS, and teach
 detect() to recognise its export.
 """
+
 import re
 
 STANDARD_COLUMNS = ["Bank", "TransactionID", "Date", "Amount"]
@@ -16,14 +17,14 @@ STANDARD_COLUMNS = ["Bank", "TransactionID", "Date", "Amount"]
 
 # ---- parsers: raw export rows -> standard rows ---------------------------------
 
+
 def _parse_td(rows):
     """TD Canada Trust chequing: no header; Date, Description, Out, In, Balance."""
     for r in rows:
         if not r:
             continue
         date, desc, out, into = r[0], r[1], r[2].strip(), r[3].strip()
-        yield {"Bank": "td", "TransactionID": desc, "Date": date.strip(),
-               "Amount": f"-{out}" if out else into}
+        yield {"Bank": "td", "TransactionID": desc, "Date": date.strip(), "Amount": f"-{out}" if out else into}
 
 
 def _parse_meridiancu(rows):
@@ -35,9 +36,12 @@ def _parse_meridiancu(rows):
     for r in rows[1:]:
         if not r:
             continue
-        yield {"Bank": "meridiancu", "TransactionID": r[desc_i].strip(),
-               "Date": r[date_i].split()[0],  # "2026-11-06 12:00:00 AM" -> "2026-11-06"
-               "Amount": r[amt_i].strip()}
+        yield {
+            "Bank": "meridiancu",
+            "TransactionID": r[desc_i].strip(),
+            "Date": r[date_i].split()[0],  # "2026-11-06 12:00:00 AM" -> "2026-11-06"
+            "Amount": r[amt_i].strip(),
+        }
 
 
 def detect(rows):
@@ -59,9 +63,9 @@ _PREFIX = re.compile(r"^(?:WWW|SQ|TST|PAYPAL|VESTA)\s+(?=\S)")
 
 
 def _generic(s: str) -> str:
-    s = re.sub(r"\*{3}\w+", " ", s)                               # e-transfer refs (***vtg)
-    s = re.sub(r"#\s*\d*", " ", s)                                # store numbers (#1348)
-    s = re.sub(r"\b\d{1,2}/\d{2}\b", " ", s)                      # dates (09/28)
+    s = re.sub(r"\*{3}\w+", " ", s)  # e-transfer refs (***vtg)
+    s = re.sub(r"#\s*\d*", " ", s)  # store numbers (#1348)
+    s = re.sub(r"\b\d{1,2}/\d{2}\b", " ", s)  # dates (09/28)
     s = re.sub(r"(?<![A-Za-z0-9])\d+(?:\.\d+)?(?![A-Za-z0-9])", " ", s)  # standalone numbers/amounts
     s = re.sub(r"[^A-Za-z0-9]+", " ", s)
     s = re.sub(r"\s+", " ", s).strip().upper()
@@ -76,16 +80,40 @@ def _clean_td(raw: str) -> str:
 
 
 # Transaction-type prefixes and the trailing province/country code ("Onca" = Ontario, Canada).
-_MERIDIAN_PREFIX = re.compile(r"^(?:POS Purchase|Pre-Authorized|Bill Payment)\s+", re.I)
-_MERIDIAN_SUFFIX = re.compile(r"\s+Onca\s*$", re.I)
+_MERIDIAN_PREFIX = re.compile(r"^(?:POS Purchase|Pre-Authorized|Bill Payment)\s+", re.IGNORECASE)
+_MERIDIAN_SUFFIX = re.compile(r"\s+Onca\s*$", re.IGNORECASE)
 
 
 # Meridian appends the city after the merchant, often cut short ("Mississ", "Scarboroug").
 _CITIES = [
-    "TORONTO", "NORTH YORK", "YORK", "EAST YORK", "SCARBOROUGH", "ETOBICOKE", "MISSISSAUGA",
-    "ERIN MILLS", "BRAMPTON", "MARKHAM", "MILTON", "RICHMOND HILL", "VAUGHAN", "THORNHILL",
-    "WOODBRIDGE", "CONCORD", "OAKVILLE", "BURLINGTON", "HAMILTON", "AJAX", "PICKERING",
-    "WHITBY", "OSHAWA", "NEWMARKET", "AURORA", "CALEDON", "BOLTON", "STOUFFVILLE",
+    "TORONTO",
+    "NORTH YORK",
+    "YORK",
+    "EAST YORK",
+    "SCARBOROUGH",
+    "ETOBICOKE",
+    "MISSISSAUGA",
+    "ERIN MILLS",
+    "BRAMPTON",
+    "MARKHAM",
+    "MILTON",
+    "RICHMOND HILL",
+    "VAUGHAN",
+    "THORNHILL",
+    "WOODBRIDGE",
+    "CONCORD",
+    "OAKVILLE",
+    "BURLINGTON",
+    "HAMILTON",
+    "AJAX",
+    "PICKERING",
+    "WHITBY",
+    "OSHAWA",
+    "NEWMARKET",
+    "AURORA",
+    "CALEDON",
+    "BOLTON",
+    "STOUFFVILLE",
 ]
 _MIN_PARTIAL_CITY = 5  # shorter cut-offs ("Br", "Mar") are too ambiguous to strip
 

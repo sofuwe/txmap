@@ -232,6 +232,15 @@ Run the tests:
 uv run python -m unittest
 ```
 
+Lint and format with [ruff](https://docs.astral.sh/ruff/) (installed by `uv sync`
+as a dev dependency; settings are under `[tool.ruff]` in `pyproject.toml`):
+
+```sh
+uv run ruff check .
+uv run ruff check --fix .   # apply the safe automatic fixes
+uv run ruff format
+```
+
 Add a dependency:
 
 ```sh

@@ -7,6 +7,7 @@ each descriptor is sent to the API once.
 Requires the `anthropic` package (`uv sync --extra llm`) and an API key in
 ANTHROPIC_API_KEY. Sends the raw descriptor and the nearest labels to the Anthropic API.
 """
+
 import json
 import os
 import threading
@@ -46,8 +47,10 @@ SCHEMA = {
 }
 
 
-_NO_KEY = ("error: --llm needs an Anthropic API key. Set ANTHROPIC_API_KEY (e.g. in ~/.zshrc, "
-           "then open a new terminal or run `source ~/.zshrc`).")
+_NO_KEY = (
+    "error: --llm needs an Anthropic API key. Set ANTHROPIC_API_KEY (e.g. in ~/.zshrc, "
+    "then open a new terminal or run `source ~/.zshrc`)."
+)
 
 
 def _exit_if_auth_error(e):
@@ -56,8 +59,7 @@ def _exit_if_auth_error(e):
     if isinstance(e, TypeError) and "authentication method" in str(e):
         raise SystemExit(_NO_KEY) from None
     if type(e).__name__ == "AuthenticationError":  # 401: key is set but rejected
-        raise SystemExit("error: the Anthropic API rejected your API key (401). "
-                         "Check ANTHROPIC_API_KEY.") from None
+        raise SystemExit("error: the Anthropic API rejected your API key (401). Check ANTHROPIC_API_KEY.") from None
 
 
 class LLMNamer:
@@ -93,9 +95,11 @@ class LLMNamer:
             if ck in self._cache:
                 return self._cache[ck]
         shots = "\n".join(f"{b} | {k} -> {m}" for b, k, m in examples) or "(none)"
-        prompt = (f"Closest labelled examples (bank | cleaned descriptor -> merchant):\n{shots}\n\n"
-                  f"Name this one.\nBank: {bank}\nRaw descriptor: {raw.strip()}\n"
-                  f"Cleaned descriptor: {key}")
+        prompt = (
+            f"Closest labelled examples (bank | cleaned descriptor -> merchant):\n{shots}\n\n"
+            f"Name this one.\nBank: {bank}\nRaw descriptor: {raw.strip()}\n"
+            f"Cleaned descriptor: {key}"
+        )
         extra = {}
         if self.model in _FALLBACK_MODELS:
             extra = {"betas": ["server-side-fallback-2026-07-01"], "fallbacks": "default"}
@@ -122,6 +126,5 @@ class LLMNamer:
 
     def save(self):
         os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
-        with self._lock:
-            with open(self.cache_path, "w") as f:
-                json.dump(self._cache, f, indent=1, sort_keys=True)
+        with self._lock, open(self.cache_path, "w") as f:
+            json.dump(self._cache, f, indent=1, sort_keys=True)

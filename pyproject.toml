@@ -18,3 +18,12 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["txmap"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
