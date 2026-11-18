@@ -3,6 +3,7 @@
 Usage (from the repo root, macOS — uses the Menlo system font):
     uv run --with pillow python scripts/make_demo_gif.py . docs/demo.gif
 """
+
 import os
 import shutil
 import subprocess
@@ -21,19 +22,28 @@ STEPS = [
     ("# 0. given these raw csv exports from different banks", []),
     (None, ["cat td.example.csv | column -s, -t"]),
     (None, ["cat meridiancu.example.csv | column -s, -t"]),
-    ("# 1. normalize: raw bank exports -> one standard CSV", [
-        "uv run txmap normalize td.example.csv \\",
-        "    meridiancu.example.csv -o all.csv",
-    ]),
+    (
+        "# 1. normalize: raw bank exports -> one standard CSV",
+        [
+            "uv run txmap normalize td.example.csv \\",
+            "    meridiancu.example.csv -o all.csv",
+        ],
+    ),
     (None, ["head -5 all.csv | column -s, -t"]),
-    ("# 2. map: standard CSV -> labels draft with merchant names", [
-        "uv run txmap map all.csv --labels labels.example.csv \\",
-        "    -o draft.csv --review review.csv",
-    ]),
+    (
+        "# 2. map: standard CSV -> labels draft with merchant names",
+        [
+            "uv run txmap map all.csv --labels labels.example.csv \\",
+            "    -o draft.csv --review review.csv",
+        ],
+    ),
     (None, ["column -s, -t draft.csv"]),
-    ("# 3. eval: 5-fold accuracy on descriptions the model hasn't seen", [
-        "uv run txmap eval -v labels.example.csv | head -8",
-    ]),
+    (
+        "# 3. eval: 5-fold accuracy on descriptions the model hasn't seen",
+        [
+            "uv run txmap eval -v labels.example.csv | head -8",
+        ],
+    ),
 ]
 
 COLS, ROWS = 96, 26
@@ -50,8 +60,9 @@ FG, DIM, GREEN, CYAN = (220, 223, 228), (120, 128, 145), (125, 210, 140), (110, 
 def run(lines):
     cmd = " ".join(l.rstrip(" \\").strip() for l in lines)
     env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
-    out = subprocess.run(cmd, shell=True, cwd=REPO, env=env, text=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT).stdout
+    out = subprocess.run(
+        cmd, check=False, shell=True, cwd=REPO, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    ).stdout
     return [l[:COLS] for l in out.rstrip("\n").splitlines()]
 
 
@@ -119,8 +130,9 @@ frame(3500)
 # Shared palette keeps the file small and colours stable across frames.
 pal = frames[-1][0].quantize(colors=32, method=Image.Quantize.MEDIANCUT)
 imgs = [f.quantize(palette=pal, dither=Image.Dither.NONE) for f, _ in frames]
-imgs[0].save(OUT, save_all=True, append_images=imgs[1:],
-             duration=[ms for _, ms in frames], loop=0, optimize=True, disposal=1)
+imgs[0].save(
+    OUT, save_all=True, append_images=imgs[1:], duration=[ms for _, ms in frames], loop=0, optimize=True, disposal=1
+)
 print(f"{len(frames)} frames, {sum(ms for _, ms in frames) / 1000:.1f}s -> {OUT}")
 
 tempfiles = (

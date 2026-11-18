@@ -4,6 +4,7 @@ Pipeline:
   normalize  raw bank export(s)  -> standard CSV (Bank,TransactionID,Date,Amount)
   map        standard CSV        -> labels draft (Bank,TransactionID,MerchantName)
 """
+
 import argparse
 import contextlib
 import csv
@@ -74,6 +75,7 @@ def make_namer(args):
     if not args.llm:
         return None
     from .llm import LLMNamer
+
     return LLMNamer(model=args.llm_model)
 
 
@@ -103,8 +105,11 @@ def cmd_map(args):
             if conf < args.min_confidence:
                 review[(bank, raw.strip())] = (merchant, conf, src)
     if review:
-        print(f"{len(review)} distinct descriptors below confidence {args.min_confidence}; "
-              f"check them before adding to your labels.", file=sys.stderr)
+        print(
+            f"{len(review)} distinct descriptors below confidence {args.min_confidence}; "
+            f"check them before adding to your labels.",
+            file=sys.stderr,
+        )
         if args.review:
             with open(args.review, "w", newline="") as f:
                 rw = csv.writer(f)
@@ -122,6 +127,7 @@ def cmd_eval(args):
     """K-fold over distinct normalized descriptors: measures accuracy on descriptors the model
     has NOT seen (the hard case). Repeats of a seen descriptor are trivially correct."""
     from .banks import clean
+
     rows = read_labels(args.labels)
     keys = sorted({(b.lower(), clean(b, r)) for b, r, _ in rows})
     fold_of = {k: i % args.folds for i, k in enumerate(keys)}
@@ -142,8 +148,10 @@ def cmd_eval(args):
                 ok_by_src[src] += 1
             else:
                 wrong.append((raw.strip(), truth, pred, src))
-    print(f"unseen-descriptor accuracy: {correct}/{total} = {correct / total:.1%} "
-          f"({len(keys)} distinct descriptors, {args.folds}-fold)")
+    print(
+        f"unseen-descriptor accuracy: {correct}/{total} = {correct / total:.1%} "
+        f"({len(keys)} distinct descriptors, {args.folds}-fold)"
+    )
     print("  by source: " + ", ".join(f"{s} {ok_by_src[s]}/{n}" for s, n in by_src.most_common()))
     if namer:
         print(f"  LLM: {namer.calls} API calls ({args.llm_model}); the rest came from the cache")
@@ -153,14 +161,14 @@ def cmd_eval(args):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="txmap", description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(prog="txmap", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
 
     # COMMAND: `normalize`
     #
-    n = sub.add_parser("normalize", help="convert raw bank export(s) into one standard CSV "
-                                         "(Bank,TransactionID,Date,Amount)")
+    n = sub.add_parser(
+        "normalize", help="convert raw bank export(s) into one standard CSV (Bank,TransactionID,Date,Amount)"
+    )
     n.add_argument("inputs", nargs="+", help="raw export CSV(s); bank is detected from each file's shape")
     n.add_argument("-o", "--output")
     n.add_argument("--bank", help=f"force the bank for all inputs ({', '.join(sorted(BANKS))})")
@@ -175,8 +183,9 @@ def main(argv=None):
     m.add_argument("--labels", help="labels CSV to train from (default: data/out/labels.csv, else the example)")
     m.add_argument("--review", help="write low-confidence descriptors here for labelling")
     m.add_argument("--min-confidence", type=float, default=0.7)
-    m.add_argument("--llm", action="store_true",
-                   help="name unmatched descriptors with Claude (sends them to the Anthropic API)")
+    m.add_argument(
+        "--llm", action="store_true", help="name unmatched descriptors with Claude (sends them to the Anthropic API)"
+    )
     m.add_argument("--llm-model", default=LLM_DEFAULT_MODEL, help="Claude model for --llm")
     m.set_defaults(fn=cmd_map)
 
@@ -193,8 +202,9 @@ def main(argv=None):
     e.add_argument("labels", nargs="?", default=DEFAULT_LABELS)
     e.add_argument("--folds", type=int, default=5)
     e.add_argument("-v", "--verbose", action="store_true")
-    e.add_argument("--llm", action="store_true",
-                   help="name unmatched descriptors with Claude (sends them to the Anthropic API)")
+    e.add_argument(
+        "--llm", action="store_true", help="name unmatched descriptors with Claude (sends them to the Anthropic API)"
+    )
     e.add_argument("--llm-model", default=LLM_DEFAULT_MODEL, help="Claude model for --llm")
     e.set_defaults(fn=cmd_eval)
 

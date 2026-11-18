@@ -5,6 +5,7 @@ match, then cosine similarity over char trigrams, then (optionally) an LLM given
 nearest labels as examples, then falls back to the cleaned descriptor in title case.
 Anything past similarity is flagged low confidence so it can be reviewed/labelled.
 """
+
 import json
 import math
 from collections import Counter, defaultdict
@@ -13,13 +14,13 @@ from .banks import clean
 
 THRESHOLD = 0.7
 SAME_BANK_BONUS = 0.05
-NUM_EXAMPLES = 10      # nearest labels shown to the LLM fallback
-LLM_CONFIDENCE = 0.5   # below the default review threshold, so LLM guesses get reviewed
+NUM_EXAMPLES = 10  # nearest labels shown to the LLM fallback
+LLM_CONFIDENCE = 0.5  # below the default review threshold, so LLM guesses get reviewed
 
 
 def _grams(key: str) -> Counter:
     s = "^" + key
-    return Counter(s[i:i + 3] for i in range(max(1, len(s) - 2)))
+    return Counter(s[i : i + 3] for i in range(max(1, len(s) - 2)))
 
 
 class Model:
@@ -33,8 +34,7 @@ class Model:
         votes = defaultdict(Counter)
         for bank, raw, merchant in rows:
             votes[(bank.lower(), clean(bank, raw))][merchant] += 1
-        return cls([{"bank": b, "key": k, "merchant": c.most_common(1)[0][0]}
-                    for (b, k), c in sorted(votes.items())])
+        return cls([{"bank": b, "key": k, "merchant": c.most_common(1)[0][0]} for (b, k), c in sorted(votes.items())])
 
     def _build(self):
         self.exact = {(e["bank"], e["key"]): e["merchant"] for e in self.entries}
