@@ -1,5 +1,6 @@
 # Project
-.claude/prompts.txt
+.claude/sessions/
+.claude/prompts.md
 
 # Project - Data
 txmap/data/out/*
