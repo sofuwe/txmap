@@ -6,21 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-Uses `uv` and Python 3.13. Linting is ruff (dev dependency, default rules, config in `pyproject.toml`); no formatter is enforced.
-
-```sh
-uv sync                     # core (no runtime dependencies)
-uv sync --extra llm         # adds `anthropic` for the --llm step
-
-uv run ruff check .                                               # lint (--fix for safe fixes)
-uv run python -m unittest                                         # all tests
-uv run python -m unittest tests.test_txmap.CleanMeridian          # one class
-uv run python -m unittest tests.test_txmap.LLMFallback.test_answers_are_cached  # one test
-
-uv run txmap normalize <raw.csv>... -o txmap/data/normalized/all.csv
-uv run txmap map txmap/data/normalized/all.csv -o draft.csv --review review.csv [--llm]
-uv run txmap eval [-v] [--llm]    # 5-fold accuracy on unseen descriptions, by cascade step
-```
+See [README.md](./README.md)
 
 ## Architecture
 
@@ -32,6 +18,8 @@ Pipeline: raw bank export → `normalize` → standard CSV (`Bank,TransactionID,
 - `txmap/cli.py` — argparse subcommands (`normalize`, `map`, `train`, `eval`); runs LLM calls concurrently (8 threads), which is why `LLMNamer` guards its cache with a lock.
 
 Tests never hit the network: `LLMNamer` accepts an injected `client` (see `_FakeClient` in `tests/test_txmap.py`, which mimics `client.beta.messages.create`) and a temp `cache_path`.
+
+For more details, see [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ## Data and privacy
 
