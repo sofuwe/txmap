@@ -1,0 +1,7 @@
+ ID, Date, Account Name, Description1, Description2, Description3, Amount, Balance
+1,2026-10-01 12:00:00 AM,000-Chequing - 0,"POS Purchase Mobil 4361 Toronto Onca","Other Reference # 1","",-40.25,1959.75
+2,2026-10-02 12:00:00 AM,000-Chequing - 0,"POS Purchase Bulk Barn 123 Toronto Onca","Other Reference # 2","",-12.40,1947.35
+3,2026-10-03 12:00:00 AM,000-Chequing - 0,"POS Purchase Bulk Barn 476 Mississ","Other Reference # 3","",-6.78,1940.57
+4,2026-10-04 12:00:00 AM,000-Chequing - 0,"POS Purchase Bulk Bar Toronto Onca","Other Reference # 4","",-8.15,1932.42
+5,2026-10-05 12:00:00 AM,000-Chequing - 0,"e-Transfer Out","Service Charge 1.00","Other Reference # 5",-100,1832.42
+6,2026-10-15 12:00:00 AM,000-Chequing - 0,"Payroll Deposit ACME","","",1200.50,3032.92

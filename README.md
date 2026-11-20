@@ -149,6 +149,7 @@ Run the tests:
 # Run all tests
 uv run python -m unittest
 # Run specific tests
+uv run python -m unittest discover -s tests/behaviour -t . -v     # behaviour spec only, readable output
 uv run python -m unittest tests.test_txmap.CleanMeridian          # one class
 uv run python -m unittest tests.test_txmap.LLMFallback.test_answers_are_cached  # one test
 ```
