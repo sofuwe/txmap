@@ -39,3 +39,11 @@ htmlcov/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Behaviour tests - generated outputs (inputs are committed)
+tests/behaviour/data/normalized/*
+!tests/behaviour/data/normalized/.gitkeep
+tests/behaviour/data/models/*
+!tests/behaviour/data/models/.gitkeep
+tests/behaviour/data/out/*
+!tests/behaviour/data/out/labels*.csv
