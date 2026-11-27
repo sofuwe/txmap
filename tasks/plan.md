@@ -1,6 +1,6 @@
 # Plan: Behaviour Tests — V1
 
-Implements [SPEC-behaviour-tests.md](../SPEC-behaviour-tests.md) (approved, rev 3). Tasks: [todo.md](./todo.md).
+Implements [SPEC-01-behaviour-tests.md](../spec/SPEC-01-behaviour-tests.md) (approved, rev 3). Tasks: [todo.md](./todo.md).
 
 ## Components and dependencies
 
