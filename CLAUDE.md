@@ -17,6 +17,8 @@ Pipeline: raw bank export → `normalize` → standard CSV (`Bank,TransactionID,
 - `txmap/llm.py` — `LLMNamer`, the optional Claude step. Lazily imports `anthropic` so the core stays dependency-free. Uses structured JSON output at low effort, plus the server-side fallback beta for models in `_FALLBACK_MODELS`. Answers are cached in `txmap/data/models/llm-cache.json` keyed by `PROMPT_VERSION|model|bank|raw` — **bump `PROMPT_VERSION` whenever the prompt or `SYSTEM` changes.** A refusal/non-`end_turn` returns `None` so the cascade falls through. Missing/rejected API keys become a `SystemExit` with a friendly message.
 - `txmap/cli.py` — argparse subcommands (`normalize`, `map`, `train`, `eval`); runs LLM calls concurrently (8 threads), which is why `LLMNamer` guards its cache with a lock.
 
+`spec/MISSION.md` states the product mission, principles in priority order, and non-goals. Read it before writing or changing a spec, and keep specs in line with it.
+
 `tests/behaviour/` is a black-box spec of the CLI contract, written up in `spec/SPEC-01-behaviour-tests.md`. Every arrange and act step is a pasteable `cmd("uv run txmap ...")` line, inputs are committed under `tests/behaviour/data/`, and outputs there are git-ignored. Nothing under `tests/behaviour/` may import `txmap`. If one of these tests fails after a refactor, a user-facing behaviour broke. If the contract changed on purpose, update the test together with README.md.
 
 Tests never hit the network: `LLMNamer` accepts an injected `client` (see `_FakeClient` in `tests/test_txmap.py`, which mimics `client.beta.messages.create`) and a temp `cache_path`.
