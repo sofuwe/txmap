@@ -1,6 +1,6 @@
 # Tasks: Behaviour Tests — V1
 
-Spec: [SPEC-behaviour-tests.md](../SPEC-behaviour-tests.md) · Plan: [plan.md](./plan.md)
+Spec: [SPEC-01-behaviour-tests.md](../spec/SPEC-01-behaviour-tests.md) · Plan: [plan.md](./plan.md)
 
 Shorthand: `BT` = `uv run python -m unittest discover -s tests/behaviour -t . -v`
 
