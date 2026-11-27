@@ -32,8 +32,8 @@ afterwards, such as budgets, categories or reports, is up to them.
    grow to any bank in any locale.
 
 The **core engine** (cleaning, model and prediction cascade) is the lasting
-asset. The CLI and the future API are thin shells around it. Specs should put
-their effort into the engine, and should not shape it around either shell.
+asset. The CLI and the future API are thin interfaces around it. Specs should put
+their effort into the engine, and should not shape it around either interface.
 
 ## Principles
 
@@ -86,4 +86,6 @@ Each spec should answer these questions:
 - Does it keep the core local and dependency-free, with the LLM opt-in?
 - Does it change the public contract? If so, link a delta spec and update the
   behaviour tests.
-- Does it improve the engine, or does it only tune one shell?
+- Does the change belong in the core engine (cleaning, model, cascade) so every
+  interface benefits? If it's interface-only (CLI today, API later), is that
+  intended, and is no engine logic stuck in the interface?
