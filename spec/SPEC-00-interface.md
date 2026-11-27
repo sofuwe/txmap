@@ -9,6 +9,9 @@ propose any change. Later changes, such as the planned `map --model`-required
 contract in [SPEC-01-behaviour-tests.md](./SPEC-01-behaviour-tests.md), get delta
 specs against this file. Once a change ships, it is folded back in here.
 
+This spec serves [MISSION.md](./MISSION.md). It records the stable, tested
+public contract that the mission's fourth principle relies on.
+
 **Who it's for:**
 
 - The maintainer, who needs to tell an intended change from an accidental break.

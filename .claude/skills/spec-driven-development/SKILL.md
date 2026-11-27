@@ -68,6 +68,8 @@ Build order: identity → billing, notifications → reporting
 
 Start with a high-level vision. Ask the human clarifying questions until requirements are concrete.
 
+**Read [`spec/MISSION.md`](../../../spec/MISSION.md) first.** Every spec must serve the mission. Use its principle order to settle trade-offs, keep to its non-goals, and answer its "Using this in specs" checklist in the spec, either under the Objective or as a short "Mission fit" note. If the spec has to break a principle, say which one and why.
+
 **Surface assumptions immediately.** Before writing any spec content, list what you're assuming:
 
 ```
